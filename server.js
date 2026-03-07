@@ -81,10 +81,8 @@ app.use(express.static(__dirname))
 
 // Landing page
 app.get("/", (req, res) => {
-  if (req.session.user) return res.redirect("/chat")
   res.sendFile(path.join(__dirname, "landing.html"))
 })
-
 // Chat page (protected)
 app.get("/chat", (req, res) => {
   if (!req.session.user) return res.redirect("/login.html")
