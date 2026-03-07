@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<title>Sign Up – ASTERYX AI</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04060f;--surface:rgba(10,16,36,0.9);--surface2:rgba(15,22,50,0.5);
+  --border:rgba(96,165,250,0.15);--border2:rgba(96,165,250,0.3);
+  --blue:#60a5fa;--blue2:#3b82f6;--indigo:#818cf8;
+  --text:#f0f4ff;--text2:rgba(200,210,240,0.6);--text3:rgba(200,210,240,0.3);
+  --t:.35s cubic-bezier(.23,1,.32,1);
+}
+[data-theme="light"]{
+  --bg:#f0f4ff;--surface:rgba(255,255,255,0.93);--surface2:rgba(240,245,255,0.7);
+  --border:rgba(59,130,246,0.14);--border2:rgba(59,130,246,0.32);
+  --text:#0f172a;--text2:rgba(15,23,42,0.58);--text3:rgba(15,23,42,0.3);
+}
+html,body{height:100%}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;transition:background var(--t),color var(--t);cursor:none;overflow:auto}
+@media(max-width:600px){body{cursor:auto}}
+#bgCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+.cur{position:fixed;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+@media(max-width:600px){.cur{display:none}}
+.topbar{position:fixed;top:0;left:0;right:0;height:60px;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:rgba(4,6,15,0.55);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+[data-theme="light"] .topbar{background:rgba(240,244,255,0.65)}
+.tlogo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.tlogo img{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--blue2);box-shadow:0 0 12px rgba(96,165,250,0.4)}
+.tlogo span{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;letter-spacing:3px;color:var(--text)}
+.ttog{width:36px;height:36px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s;color:var(--text)}
+.ttog:hover{border-color:var(--blue2)}
+main{flex:1;display:flex;align-items:center;justify-content:center;padding:80px 20px 30px}
+.card{width:min(420px,100%);animation:cin .6s cubic-bezier(.23,1,.32,1) both}
+@keyframes cin{from{opacity:0;transform:translateY(28px) scale(.97)}to{opacity:1;transform:none}}
+.ci{padding:44px;background:var(--surface);backdrop-filter:blur(30px);border:1px solid var(--border);border-radius:26px;
+  box-shadow:0 32px 80px rgba(0,0,0,.7),0 0 0 1px rgba(96,165,250,.04),inset 0 1px 0 rgba(255,255,255,.05)}
+@media(max-width:480px){.ci{padding:32px 24px}}
+.clogo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:28px;text-decoration:none}
+.clogo img{width:32px;height:32px;border-radius:50%;border:2px solid var(--blue2);box-shadow:0 0 14px rgba(96,165,250,.45)}
+.clogo span{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;letter-spacing:3.5px;color:var(--text)}
+.ctitle{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:5px;color:var(--text)}
+.csub{font-size:14px;color:var(--text2);margin-bottom:26px}
+.alert{padding:11px 14px;border-radius:11px;font-size:13.5px;margin-bottom:18px;display:none;animation:ain .3s ease}
+@keyframes ain{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.alert.err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;display:block}
+.field{margin-bottom:16px}
+label{display:block;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:7px}
+.iw{position:relative}
+input[type=text],input[type=email],input[type=password]{width:100%;padding:13px 42px 13px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;outline:none;transition:border-color .2s,box-shadow .2s}
+[data-theme="light"] input{background:rgba(59,130,246,.04);border-color:rgba(59,130,246,.15)}
+input:focus{border-color:var(--blue2);box-shadow:0 0 0 3px rgba(59,130,246,.14)}
+input::placeholder{color:var(--text3)}
+.iicon{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:15px;cursor:pointer;user-select:none;opacity:.5;transition:opacity .2s}
+.iicon:hover{opacity:1}
+/* PASSWORD STRENGTH */
+.pst{margin-top:8px}
+.ptrack{height:3px;border-radius:2px;background:rgba(255,255,255,.07);overflow:hidden}
+[data-theme="light"] .ptrack{background:rgba(0,0,0,.07)}
+.pbar{height:100%;width:0%;border-radius:2px;transition:width .3s,background .3s}
+.phint{font-size:11px;color:var(--text3);margin-top:5px;min-height:14px;transition:color .3s}
+.sbtn{width:100%;padding:14px;border-radius:13px;background:linear-gradient(135deg,var(--blue2),var(--indigo));border:none;color:white;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:all .25s;margin-top:8px;box-shadow:0 4px 20px rgba(59,130,246,.32)}
+.sbtn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(59,130,246,.52)}
+.sbtn:active{transform:translateY(0)}
+.cfoot{text-align:center;margin-top:22px;font-size:14px;color:var(--text2)}
+.cfoot a{color:var(--blue);text-decoration:none;font-weight:500}
+.cfoot a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="cur" id="cd" style="position:fixed"><div style="width:7px;height:7px;background:white;border-radius:50%;mix-blend-mode:difference;position:absolute;transform:translate(-50%,-50%)"></div></div>
+<div class="cur" id="cr" style="position:fixed"><div id="cRing" style="width:33px;height:33px;border:1.5px solid rgba(255,255,255,.42);border-radius:50%;mix-blend-mode:difference;position:absolute;transform:translate(-50%,-50%);transition:width .2s,height .2s"></div></div>
+<canvas id="bgCanvas"></canvas>
+<div class="topbar">
+  <a class="tlogo" href="/"><img src="logo.png" alt="ASTERYX"><span>ASTERYX</span></a>
+  <button class="ttog" onclick="toggleTheme()"><span id="ti">☀️</span></button>
+</div>
+<main>
+  <div class="card">
+    <div class="ci">
+      <a class="clogo" href="/"><img src="logo.png" alt="ASTERYX"><span>ASTERYX</span></a>
+      <h1 class="ctitle">Create account</h1>
+      <p class="csub">Join ASTERYX AI today — it's free</p>
+      <div id="alert" class="alert"></div>
+      <form action="/signup" method="POST" onsubmit="return validate()">
+        <div class="field">
+          <label>Full Name</label>
+          <input type="text" name="name" id="nameInp" placeholder="Your name" autocomplete="name" required minlength="2">
+        </div>
+        <div class="field">
+          <label>Email address</label>
+          <input type="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <div class="iw">
+            <input type="password" name="password" id="pwd" placeholder="At least 6 characters" autocomplete="new-password" required minlength="6" oninput="checkStrength(this.value)">
+            <span class="iicon" onclick="togglePwd('pwd',this)">👁</span>
+          </div>
+          <div class="pst">
+            <div class="ptrack"><div class="pbar" id="pbar"></div></div>
+            <div class="phint" id="phint">Enter a password</div>
+          </div>
+        </div>
+        <button type="submit" class="sbtn">Create Account →</button>
+      </form>
+      <p class="cfoot">Already have an account? <a href="login.html">Sign in</a></p>
+    </div>
+  </div>
+</main>
+<script>
+function toggleTheme(){
+  const h=document.documentElement,d=h.getAttribute("data-theme")==="dark"
+  h.setAttribute("data-theme",d?"light":"dark")
+  document.getElementById("ti").textContent=d?"🌙":"☀️"
+  localStorage.setItem("theme",d?"light":"dark")
+}
+const sv=localStorage.getItem("theme")
+if(sv){document.documentElement.setAttribute("data-theme",sv);document.getElementById("ti").textContent=sv==="dark"?"☀️":"🌙"}
+function togglePwd(id,icon){const i=document.getElementById(id);i.type=i.type==="password"?"text":"password";icon.textContent=i.type==="password"?"👁":"🙈"}
+function checkStrength(v){
+  const bar=document.getElementById("pbar"),hint=document.getElementById("phint")
+  let s=0
+  if(v.length>=6)s++;if(v.length>=10)s++;if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++;if(/[^A-Za-z0-9]/.test(v))s++
+  const colors=["#ef4444","#f97316","#eab308","#22c55e","#3b82f6"]
+  const labels=["Too short","Weak","Fair","Good","Strong"]
+  bar.style.width=(s*20)+"%"
+  bar.style.background=colors[s-1]||"#ef4444"
+  hint.textContent=v.length?(labels[s-1]||"Too short"):"Enter a password"
+  hint.style.color=colors[s-1]||"var(--text3)"
+}
+function validate(){
+  const name=document.getElementById("nameInp").value.trim()
+  const pwd=document.getElementById("pwd").value
+  if(name.length<2){showAlert("Name must be at least 2 characters.");return false}
+  if(pwd.length<6){showAlert("Password must be at least 6 characters.");return false}
+  return true
+}
+function showAlert(m){const e=document.getElementById("alert");e.textContent=m;e.className="alert err"}
+const p=new URLSearchParams(location.search)
+if(p.get("error")==="userexists") showAlert("An account with this email already exists.")
+if(p.get("error")==="missing") showAlert("Please fill in all fields.")
+if(p.get("error")==="invalidemail") showAlert("Please enter a valid email address.")
+if(p.get("error")==="shortpassword") showAlert("Password must be at least 6 characters.")
+if(p.get("error")==="shortname") showAlert("Name must be at least 2 characters.")
+let mx=0,my=0,rx=0,ry=0
+const cd=document.getElementById("cd"),cr=document.getElementById("cr")
+document.addEventListener("mousemove",e=>{mx=e.clientX;my=e.clientY;cd.style.left=mx+"px";cd.style.top=my+"px"})
+;(function ar(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;cr.style.left=rx+"px";cr.style.top=ry+"px";requestAnimationFrame(ar)})()
+const cv=document.getElementById("bgCanvas"),ctx=cv.getContext("2d")
+cv.width=window.innerWidth;cv.height=window.innerHeight
+const pts=Array.from({length:40},()=>({x:Math.random()*cv.width,y:Math.random()*cv.height,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35}))
+;(function dp(){
+  ctx.clearRect(0,0,cv.width,cv.height)
+  const dk=document.documentElement.getAttribute("data-theme")!=="light"
+  pts.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy
+    if(p.x<0||p.x>cv.width)p.vx*=-1;if(p.y<0||p.y>cv.height)p.vy*=-1
+    ctx.beginPath();ctx.arc(p.x,p.y,1.5,0,Math.PI*2)
+    ctx.fillStyle=dk?"rgba(96,165,250,.38)":"rgba(59,130,246,.2)";ctx.fill()
+    pts.forEach(p2=>{
+      const d=Math.hypot(p.x-p2.x,p.y-p2.y)
+      if(d<100){ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p2.x,p2.y)
+        ctx.strokeStyle=dk?`rgba(96,165,250,${.08*(1-d/100)})`:`rgba(59,130,246,${.04*(1-d/100)})`;ctx.stroke()}
+    })
+  })
+  requestAnimationFrame(dp)
+})()
+</script>
+</body>
+</html>

@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<title>ASTERYX AI — Offline Intelligence</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="ASTERYX — A powerful AI assistant for robotics, coding, and beyond.">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04060f;--surface:rgba(10,16,36,0.85);--surface2:rgba(15,22,50,0.6);
+  --border:rgba(96,165,250,0.13);--border2:rgba(96,165,250,0.28);
+  --blue:#60a5fa;--blue2:#3b82f6;--indigo:#818cf8;--violet:#a78bfa;
+  --text:#f0f4ff;--text2:rgba(200,210,240,0.62);--text3:rgba(200,210,240,0.3);
+  --t:0.4s cubic-bezier(0.23,1,0.32,1);
+}
+[data-theme="light"]{
+  --bg:#f0f4ff;--surface:rgba(255,255,255,0.9);--surface2:rgba(240,245,255,0.7);
+  --border:rgba(59,130,246,0.14);--border2:rgba(59,130,246,0.3);
+  --text:#0f172a;--text2:rgba(15,23,42,0.6);--text3:rgba(15,23,42,0.3);
+}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);transition:background var(--t),color var(--t);cursor:none}
+@media(max-width:600px){body{cursor:auto}}
+#bgCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-2;pointer-events:none}
+.mesh{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;pointer-events:none;
+  background:radial-gradient(ellipse 80% 60% at 15% 20%,rgba(96,165,250,0.07),transparent 60%),
+  radial-gradient(ellipse 60% 80% at 85% 80%,rgba(167,139,250,0.07),transparent 60%)}
+/* CURSOR */
+.cur{position:fixed;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+@media(max-width:600px){.cur{display:none}}
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;height:68px;padding:0 28px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(4,6,15,0.65);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--border);transition:background var(--t)}
+[data-theme="light"] nav{background:rgba(240,244,255,0.72)}
+.nlogo{display:flex;align-items:center;gap:12px;text-decoration:none}
+.nlogo img{width:34px;height:34px;border-radius:50%;border:2px solid var(--blue2);
+  box-shadow:0 0 18px rgba(96,165,250,0.45);animation:lglow 4s ease-in-out infinite}
+@keyframes lglow{0%,100%{box-shadow:0 0 18px rgba(96,165,250,0.45)}50%{box-shadow:0 0 38px rgba(96,165,250,0.9),0 0 72px rgba(129,140,248,0.3)}}
+.nlogo span{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;letter-spacing:4px;color:var(--text)}
+.ncenter{display:flex;align-items:center;gap:4px}
+.nlink{padding:7px 15px;border-radius:8px;font-size:13px;color:var(--text2);text-decoration:none;transition:all .2s}
+.nlink:hover{color:var(--text);background:var(--surface2)}
+.nright{display:flex;align-items:center;gap:10px}
+.ttog{width:40px;height:40px;border-radius:11px;border:1px solid var(--border2);background:var(--surface);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .2s;color:var(--text)}
+.ttog:hover{border-color:var(--blue2);background:var(--surface2)}
+.nbtn{padding:9px 22px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;text-decoration:none}
+.nbtn-g{background:transparent;border:1px solid var(--border2);color:var(--text2)}
+.nbtn-g:hover{border-color:var(--blue);color:var(--text);background:var(--surface2)}
+.nbtn-s{background:var(--blue2);border:none;color:white;box-shadow:0 4px 16px rgba(59,130,246,0.32)}
+.nbtn-s:hover{transform:translateY(-1px);box-shadow:0 8px 26px rgba(59,130,246,0.52)}
+.hburg{display:none;width:40px;height:40px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.hburg span{width:17px;height:1.5px;background:var(--text);border-radius:2px;transition:all .3s}
+.mnav{display:none;position:fixed;top:68px;left:0;right:0;z-index:999;padding:18px 24px;
+  background:rgba(4,6,15,0.97);backdrop-filter:blur(30px);border-bottom:1px solid var(--border);flex-direction:column;gap:6px;animation:sdown .3s ease}
+[data-theme="light"] .mnav{background:rgba(240,244,255,0.97)}
+.mnav.open{display:flex}
+@keyframes sdown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.mnav a{padding:12px 16px;border-radius:10px;font-size:15px;color:var(--text2);text-decoration:none;transition:all .2s;border:1px solid transparent}
+.mnav a:hover{color:var(--text);background:var(--surface2);border-color:var(--border)}
+@media(max-width:880px){.ncenter,.nright .nbtn{display:none}.hburg{display:flex}}
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:110px 24px 80px;position:relative}
+.hpill{display:inline-flex;align-items:center;gap:9px;padding:6px 18px 6px 10px;
+  background:var(--surface);border:1px solid var(--border2);border-radius:100px;
+  font-size:12px;color:var(--text2);margin-bottom:36px;backdrop-filter:blur(10px);animation:fup .7s ease both}
+.pdot{width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--blue2),var(--indigo));display:flex;align-items:center;justify-content:center;font-size:9px}
+.hwrap{position:relative;margin-bottom:36px;display:inline-block;animation:fup .7s .1s ease both}
+.hwrap::before{content:'';position:absolute;inset:-22px;border-radius:50%;
+  background:conic-gradient(transparent 0deg,rgba(96,165,250,0.3) 90deg,rgba(167,139,250,0.3) 180deg,rgba(129,140,248,0.3) 270deg,transparent 360deg);
+  animation:rspin 8s linear infinite;filter:blur(5px)}
+.hwrap::after{content:'';position:absolute;inset:-5px;border-radius:50%;background:var(--bg);z-index:0}
+@keyframes rspin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.hwrap img{width:125px;height:125px;border-radius:50%;position:relative;z-index:1;border:3px solid rgba(96,165,250,0.35);animation:flt 6s ease-in-out infinite}
+@keyframes flt{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.heyebrow{font-size:11px;letter-spacing:5px;text-transform:uppercase;color:var(--blue);margin-bottom:16px;animation:fup .7s .15s ease both}
+h1.htitle{font-family:'Syne',sans-serif;font-size:clamp(68px,13vw,136px);font-weight:800;line-height:.9;letter-spacing:-2px;margin-bottom:26px;animation:fup .7s .2s ease both}
+.ts{color:var(--text)}
+.to{-webkit-text-stroke:1.5px var(--blue);color:transparent}
+[data-theme="light"] .to{-webkit-text-stroke:1.5px var(--blue2)}
+.hdesc{font-size:clamp(15px,1.8vw,18px);color:var(--text2);max-width:500px;line-height:1.8;margin-bottom:42px;animation:fup .7s .25s ease both}
+.hcta{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:76px;animation:fup .7s .3s ease both}
+.cp{padding:14px 38px;border-radius:14px;background:var(--blue2);border:none;color:white;
+  font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;text-decoration:none;
+  transition:all .25s;animation:cpulse 3s ease-in-out infinite 1s}
+@keyframes cpulse{0%,100%{box-shadow:0 4px 20px rgba(59,130,246,0.32)}50%{box-shadow:0 4px 40px rgba(59,130,246,0.65)}}
+.cp:hover{transform:translateY(-2px) scale(1.02)}
+.cg{padding:14px 38px;border-radius:14px;background:var(--surface);border:1px solid var(--border2);
+  color:var(--text2);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;text-decoration:none;transition:all .25s;backdrop-filter:blur(10px)}
+.cg:hover{border-color:var(--blue);color:var(--text);transform:translateY(-2px)}
+.scrl{display:flex;flex-direction:column;align-items:center;gap:10px;animation:fup .7s .5s ease both}
+.strack{width:1px;height:58px;background:var(--border2);position:relative;overflow:hidden;border-radius:1px}
+.sthumb{position:absolute;top:-100%;width:100%;height:50%;background:linear-gradient(to bottom,transparent,var(--blue),transparent);animation:sanim 2.5s ease-in-out infinite}
+@keyframes sanim{0%{top:-100%}100%{top:200%}}
+.slabel{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--text3)}
+/* MARQUEE */
+.mq{overflow:hidden;padding:30px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:120px}
+.mqt{display:flex;gap:56px;animation:mqanim 22s linear infinite;width:max-content}
+.mqt:hover{animation-play-state:paused}
+@keyframes mqanim{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.mqi{display:flex;align-items:center;gap:10px;font-size:12px;letter-spacing:2.5px;text-transform:uppercase;color:var(--text3);white-space:nowrap;font-family:'Syne',sans-serif}
+.mqd{width:4px;height:4px;border-radius:50%;background:var(--blue2)}
+/* SECTIONS */
+.sec{max-width:1100px;margin:0 auto;padding:0 24px 130px}
+.sh{margin-bottom:60px}
+.stag{display:inline-block;padding:5px 14px;border-radius:100px;border:1px solid var(--border2);
+  font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--blue);margin-bottom:16px;background:var(--surface)}
+.stitle{font-family:'Syne',sans-serif;font-size:clamp(32px,5vw,52px);font-weight:800;line-height:1.1;color:var(--text)}
+.stitle em{font-style:normal;-webkit-text-stroke:1px var(--blue);color:transparent}
+.ssub{font-size:16px;color:var(--text2);margin-top:14px;max-width:460px;line-height:1.7}
+/* BENTO */
+.bento{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+.bc{background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:30px;
+  position:relative;overflow:hidden;transition:all .4s cubic-bezier(.23,1,.32,1);backdrop-filter:blur(12px)}
+.bc::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--blue),transparent);opacity:0;transition:opacity .4s}
+.bc:hover{border-color:var(--border2);transform:translateY(-5px);box-shadow:0 24px 60px rgba(0,0,0,0.4),0 0 40px rgba(96,165,250,0.06)}
+.bc:hover::before{opacity:1}
+.bc:nth-child(1){grid-column:span 7}.bc:nth-child(2){grid-column:span 5}
+.bc:nth-child(3){grid-column:span 4}.bc:nth-child(4){grid-column:span 4}.bc:nth-child(5){grid-column:span 4}
+.bc:nth-child(6){grid-column:span 12}
+.bi{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,rgba(59,130,246,0.14),rgba(129,140,248,0.14));
+  border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:19px;margin-bottom:18px}
+.bc h3{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:9px;color:var(--text)}
+.bc p{font-size:14px;color:var(--text2);line-height:1.7}
+.bvis{margin-top:22px;background:rgba(4,6,15,0.6);border:1px solid var(--border);border-radius:12px;
+  padding:14px;font-family:monospace;font-size:12px;line-height:1.9}
+[data-theme="light"] .bvis{background:rgba(220,232,255,0.6)}
+.bstat{font-family:'Syne',sans-serif;font-size:46px;font-weight:800;color:var(--blue);margin-top:14px}
+.bslabel{font-size:12px;color:var(--text3);margin-top:4px}
+@media(max-width:880px){
+  .bc:nth-child(1),.bc:nth-child(2),.bc:nth-child(3){grid-column:span 12}
+  .bc:nth-child(4),.bc:nth-child(5){grid-column:span 6}.bc:nth-child(6){grid-column:span 12}}
+@media(max-width:500px){.bc:nth-child(4),.bc:nth-child(5){grid-column:span 12}}
+/* ROBOT SECTION */
+.rsec{max-width:1100px;margin:0 auto;padding:0 24px 130px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.rtxt h2{font-family:'Syne',sans-serif;font-size:clamp(28px,4vw,46px);font-weight:800;margin:16px 0 14px;color:var(--text);line-height:1.1}
+.rtxt p{font-size:15px;color:var(--text2);line-height:1.8;margin-bottom:22px}
+.rtags{display:flex;flex-wrap:wrap;gap:8px}
+.rtag{padding:6px 14px;border-radius:8px;background:var(--surface);border:1px solid var(--border);font-size:12px;color:var(--text2)}
+@media(max-width:800px){.rsec{grid-template-columns:1fr;gap:36px}.rdisplay{order:-1}}
+/* 3D ROBOT */
+.rdisplay{display:flex;justify-content:center;align-items:center}
+.r3d{perspective:600px;transform-style:preserve-3d;transition:transform .1s linear}
+.router{display:flex;flex-direction:column;align-items:center;gap:6px}
+.rant{width:2px;height:22px;background:linear-gradient(to top,var(--blue),transparent);border-radius:2px;position:relative}
+.rant::after{content:'';position:absolute;top:-5px;left:50%;transform:translateX(-50%);
+  width:7px;height:7px;border-radius:50%;background:var(--blue);box-shadow:0 0 10px var(--blue);animation:ablink 2s ease-in-out infinite}
+@keyframes ablink{0%,100%{opacity:1}50%{opacity:.25}}
+.rhead{width:112px;height:82px;border-radius:20px;background:var(--surface2);
+  border:2px solid rgba(96,165,250,.4);box-shadow:0 0 32px rgba(96,165,250,.18),inset 0 0 20px rgba(96,165,250,.04);
+  display:flex;align-items:center;justify-content:center;gap:17px}
+.reye{width:20px;height:20px;border-radius:50%;background:var(--blue2);
+  box-shadow:0 0 14px var(--blue2),0 0 28px rgba(59,130,246,.5);animation:rblink 5s ease-in-out infinite}
+.reye:nth-child(2){animation-delay:.18s}
+@keyframes rblink{0%,87%,100%{transform:scaleY(1)}94%{transform:scaleY(.07)}}
+.rneck{width:28px;height:9px;background:var(--surface);border:1px solid var(--border);border-radius:4px}
+.rbodywrap{position:relative}
+.rarms{display:flex;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:0;gap:0}
+.rarm{width:14px;height:62px;border-radius:8px;background:var(--surface2);border:1px solid rgba(96,165,250,.22);animation:asway 4s ease-in-out infinite}
+.rarm.r{margin-left:90px;animation-delay:2s}
+@keyframes asway{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+.rbody{width:88px;height:88px;border-radius:16px;background:var(--surface2);
+  border:2px solid rgba(96,165,250,.28);box-shadow:0 0 22px rgba(96,165,250,.1);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;position:relative;z-index:1;margin:0 auto}
+.rchest{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--blue2),var(--indigo));
+  box-shadow:0 0 16px var(--blue2);animation:cpulse 1.9s ease-in-out infinite}
+@keyframes cpulse{0%,100%{transform:scale(1);box-shadow:0 0 16px var(--blue2)}50%{transform:scale(1.18);box-shadow:0 0 32px var(--blue2),0 0 54px rgba(59,130,246,.4)}}
+.rvents{display:flex;gap:4px}
+.rvent{width:15px;height:3px;border-radius:2px;background:rgba(96,165,250,.28)}
+/* FOUNDER */
+.fsec{max-width:1100px;margin:0 auto;padding:0 24px 130px}
+.finner{background:var(--surface);border:1px solid var(--border);border-radius:28px;
+  padding:56px 60px;display:grid;grid-template-columns:200px 1fr;gap:60px;align-items:center;
+  position:relative;overflow:hidden;backdrop-filter:blur(12px)}
+.finner::before{content:'';position:absolute;top:-80px;right:-80px;width:350px;height:350px;
+  border-radius:50%;background:radial-gradient(circle,rgba(96,165,250,.06),transparent 70%);pointer-events:none}
+.fimgc{position:relative;display:inline-block}
+.fring{position:absolute;border-radius:50%;border:1px solid rgba(96,165,250,.2);animation:rpulse 3s ease-in-out infinite}
+.fring:nth-child(1){inset:-10px}
+.fring:nth-child(2){inset:-20px;border-color:rgba(129,140,248,.1);animation-delay:1s}
+@keyframes rpulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.05);opacity:.5}}
+.fimgc img{width:175px;height:175px;border-radius:50%;object-fit:cover;border:3px solid rgba(96,165,250,.4);
+  box-shadow:0 0 40px rgba(96,165,250,.2);position:relative;z-index:1;display:block}
+.fbadge{display:inline-block;padding:4px 14px;border-radius:100px;background:rgba(96,165,250,.1);
+  border:1px solid rgba(96,165,250,.25);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--blue);margin-bottom:14px}
+.fname{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;color:var(--text);margin-bottom:4px}
+.frole{font-size:15px;color:var(--blue);margin-bottom:14px}
+.fbio{font-size:15px;color:var(--text2);line-height:1.8;max-width:460px}
+@media(max-width:800px){.finner{grid-template-columns:1fr;padding:36px 28px;text-align:center}.fimgc{margin:0 auto}.fbio{margin:0 auto}}
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:38px 24px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;max-width:1100px;margin:0 auto}
+.flogo{display:flex;align-items:center;gap:9px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;
+  letter-spacing:3px;color:var(--text3);text-decoration:none}
+.flogo img{width:24px;height:24px;border-radius:50%;opacity:.45}
+.fcopy{font-size:13px;color:var(--text3)}
+.flinks{display:flex;gap:18px}
+.flinks a{font-size:13px;color:var(--text3);text-decoration:none;transition:color .2s}
+.flinks a:hover{color:var(--blue)}
+/* ANIMATIONS */
+@keyframes fup{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+.rv{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+.rv.in{opacity:1;transform:none}
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}
+</style>
+</head>
+<body>
+
+<div class="cur" id="cd" style="position:fixed;z-index:9999"><div style="width:7px;height:7px;background:white;border-radius:50%;mix-blend-mode:difference;position:absolute;transform:translate(-50%,-50%)"></div></div>
+<div class="cur" id="cr" style="position:fixed;z-index:9998"><div id="cRing" style="width:34px;height:34px;border:1.5px solid rgba(255,255,255,.45);border-radius:50%;mix-blend-mode:difference;position:absolute;transform:translate(-50%,-50%);transition:width .2s,height .2s"></div></div>
+
+<canvas id="bgCanvas"></canvas>
+<div class="mesh"></div>
+
+<nav>
+  <a class="nlogo" href="/"><img src="logo.png" alt="ASTERYX"><span>ASTERYX</span></a>
+  <div class="ncenter">
+    <a class="nlink" href="#features">Features</a>
+    <a class="nlink" href="#about">About</a>
+  </div>
+  <div class="nright">
+    <button class="ttog" onclick="toggleTheme()"><span id="tIcon">☀️</span></button>
+    <a class="nbtn nbtn-g" href="login.html">Login</a>
+    <a class="nbtn nbtn-s" href="signup.html">Get Started</a>
+    <button class="hburg" id="hburg" onclick="toggleMob()"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="mnav" id="mnav">
+  <a href="#features" onclick="toggleMob()">Features</a>
+  <a href="#about" onclick="toggleMob()">About</a>
+  <a href="login.html">Login</a>
+  <a href="signup.html" style="background:var(--blue2);color:white;border-color:transparent">Get Started →</a>
+</div>
+
+<section class="hero">
+  <div class="hpill"><span class="pdot">✦</span>Offline · Private · Powerful</div>
+  <div class="hwrap"><img src="logo.png" alt="ASTERYX AI"></div>
+  <p class="heyebrow">Introducing ASTERYX AI</p>
+  <h1 class="htitle"><span class="ts">ASTER</span><span class="to">YX</span></h1>
+  <p class="hdesc">A production-grade AI assistant. No cloud. No tracking. Pure intelligence — fast, private, and yours.</p>
+  <div class="hcta">
+    <a class="cp" href="signup.html">Start for Free →</a>
+    <a class="cg" href="login.html">Sign In</a>
+  </div>
+  <div class="scrl">
+    <div class="strack"><div class="sthumb"></div></div>
+    <span class="slabel">Explore</span>
+  </div>
+</section>
+
+<div class="mq"><div class="mqt" id="mqt"></div></div>
+
+<section class="sec" id="features">
+  <div class="sh rv">
+    <div class="stag">Capabilities</div>
+    <h2 class="stitle">Built for the<br><em>AI era</em></h2>
+    <p class="ssub">Everything you need from an AI assistant, running with zero compromise.</p>
+  </div>
+  <div class="bento">
+    <div class="bc rv">
+      <div class="bi">🔌</div><h3>Offline Ready</h3>
+      <p>Runs locally with Ollama + LLaMA3. In the cloud with Groq. One codebase, both modes.</p>
+      <div class="bvis">
+        <div style="color:rgba(96,165,250,.5)">$ node server.js</div>
+        <div style="color:rgba(167,139,250,.75)">🤖 AI Engine: Groq API (cloud)</div>
+        <div style="color:#4ade80">✅ Server running on port 3000</div>
+      </div>
+    </div>
+    <div class="bc rv d1">
+      <div class="bi">⚡</div><h3>Real-time Streaming</h3>
+      <p>Token-by-token responses. Feels instant — no waiting for the full answer to load.</p>
+      <div class="bstat">~80<span style="font-size:18px;color:var(--text3)">ms</span></div>
+      <div class="bslabel">Average first token latency</div>
+    </div>
+    <div class="bc rv">
+      <div class="bi">🔒</div><h3>Secure by Default</h3>
+      <p>SHA-256 hashed passwords, rate limiting, session auth, and httpOnly cookies built in.</p>
+    </div>
+    <div class="bc rv d1">
+      <div class="bi">🤖</div><h3>Robotics & Coding</h3>
+      <p>Specialized for robotics, embedded systems, and all programming languages.</p>
+    </div>
+    <div class="bc rv d2">
+      <div class="bi">📱</div><h3>Fully Responsive</h3>
+      <p>Pixel-perfect on desktop, tablet, and mobile. Dark & light themes built in.</p>
+    </div>
+    <div class="bc rv" style="display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center">
+      <div><div class="bi">🚀</div><h3>Deploy Anywhere</h3><p>Works on Railway, Render, Vercel, VPS, or your local machine. Just set one env variable.</p></div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:50%;background:#4ade80;display:inline-block"></span>Railway</div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:50%;background:#4ade80;display:inline-block"></span>Render</div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:50%;background:#4ade80;display:inline-block"></span>VPS / Self-hosted</div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:50%;background:#4ade80;display:inline-block"></span>Local Machine</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="rsec" id="about">
+  <div class="rtxt">
+    <div class="stag rv">The Interface</div>
+    <h2 class="rv">Meet your AI<br>companion</h2>
+    <p class="rv">ASTERYX streams responses token-by-token with markdown rendering, code syntax highlighting, and a persistent chat sidebar.</p>
+    <div class="rtags rv">
+      <span class="rtag">💬 Chat History</span>
+      <span class="rtag">📝 Markdown</span>
+      <span class="rtag">🎨 Dark & Light</span>
+      <span class="rtag">📱 Mobile Ready</span>
+    </div>
+  </div>
+  <div class="rdisplay rv">
+    <div class="r3d" id="r3d">
+      <div class="router">
+        <div class="rant"></div>
+        <div class="rhead"><div class="reye"></div><div class="reye"></div></div>
+        <div class="rneck"></div>
+        <div class="rbodywrap">
+          <div class="rarms"><div class="rarm"></div><div class="rarm r"></div></div>
+          <div class="rbody">
+            <div class="rchest"></div>
+            <div class="rvents"><div class="rvent"></div><div class="rvent"></div><div class="rvent"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="fsec">
+  <div class="finner rv">
+    <div class="fimgc">
+      <div class="fring"></div><div class="fring"></div>
+      <img src="founder.jpg" alt="Ujjwal Manna">
+    </div>
+    <div>
+      <div class="fbadge">Founder</div>
+      <div class="fname">Ujjwal Manna</div>
+      <div class="frole">AI & Robotics Developer</div>
+      <p class="fbio">Creator of ASTERYX — on a mission to bring powerful, private AI to everyone. Passionate about robotics, embedded systems, and making intelligent systems accessible.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <a class="flogo" href="/"><img src="logo.png" alt="">ASTERYX</a>
+  <span class="fcopy">© 2026 ASTERYX AI · All rights reserved</span>
+  <div class="flinks"><a href="login.html">Login</a><a href="signup.html">Sign Up</a></div>
+</footer>
+
+<script>
+function toggleTheme(){
+  const h=document.documentElement,d=h.getAttribute("data-theme")==="dark"
+  h.setAttribute("data-theme",d?"light":"dark")
+  document.getElementById("tIcon").textContent=d?"🌙":"☀️"
+  localStorage.setItem("theme",d?"light":"dark")
+}
+const sv=localStorage.getItem("theme")
+if(sv){document.documentElement.setAttribute("data-theme",sv);document.getElementById("tIcon").textContent=sv==="dark"?"☀️":"🌙"}
+function toggleMob(){document.getElementById("mnav").classList.toggle("open")}
+let mx=0,my=0,rx=0,ry=0
+const cd=document.getElementById("cd"),cr=document.getElementById("cr"),ring=document.getElementById("cRing")
+document.addEventListener("mousemove",e=>{mx=e.clientX;my=e.clientY;cd.style.left=mx+"px";cd.style.top=my+"px"})
+;(function ar(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;cr.style.left=rx+"px";cr.style.top=ry+"px";requestAnimationFrame(ar)})()
+document.querySelectorAll("a,button").forEach(el=>{
+  el.addEventListener("mouseenter",()=>{ring.style.width="52px";ring.style.height="52px"})
+  el.addEventListener("mouseleave",()=>{ring.style.width="34px";ring.style.height="34px"})
+})
+const cv=document.getElementById("bgCanvas"),ctx=cv.getContext("2d")
+let W,H,pts=[]
+function rsz(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight}
+rsz();window.addEventListener("resize",rsz)
+for(let i=0;i<65;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.38,vy:(Math.random()-.5)*.38,r:Math.random()*1.4+.4})
+;(function dp(){
+  ctx.clearRect(0,0,W,H)
+  const dk=document.documentElement.getAttribute("data-theme")!=="light"
+  pts.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy
+    if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2)
+    ctx.fillStyle=dk?"rgba(96,165,250,.42)":"rgba(59,130,246,.2)";ctx.fill()
+    pts.forEach(p2=>{
+      const d=Math.hypot(p.x-p2.x,p.y-p2.y)
+      if(d<115){ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p2.x,p2.y)
+        ctx.strokeStyle=dk?`rgba(96,165,250,${.1*(1-d/115)})`:`rgba(59,130,246,${.05*(1-d/115)})`;ctx.lineWidth=.7;ctx.stroke()}
+    })
+  })
+  requestAnimationFrame(dp)
+})()
+const its=["Offline AI","Privacy First","LLaMA3","Robotics","Coding Assistant","Zero Cloud","Node.js","Groq API","Real-time Streaming","Secure Auth","Local LLM","Deploy Anywhere"]
+const tr=document.getElementById("mqt")
+;[...its,...its].forEach(t=>{const e=document.createElement("div");e.className="mqi";e.innerHTML=`<span class="mqd"></span>${t}`;tr.appendChild(e)})
+const rvs=document.querySelectorAll(".rv")
+const ob=new IntersectionObserver(es=>{es.forEach((e,i)=>{if(e.isIntersecting){setTimeout(()=>e.target.classList.add("in"),i*55);ob.unobserve(e.target)}})},{threshold:.08})
+rvs.forEach(r=>ob.observe(r))
+const r3d=document.getElementById("r3d")
+document.addEventListener("mousemove",e=>{
+  const x=(e.clientX/W-.5)*28,y=(e.clientY/H-.5)*28
+  r3d.style.transform=`rotateY(${x}deg) rotateX(${-y}deg)`
+})
+</script>
+</body>
+</html>
