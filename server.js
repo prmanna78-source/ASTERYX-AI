@@ -57,7 +57,7 @@ app.get("/", (req, res) => {
 // Chat page — protected
 app.get("/chat", (req, res) => {
   if (!req.session.user) return res.redirect("/login.html")
-  res.sendFile(path.join(__dirname, "index.html"))
+  res.sendFile(path.join(__dirname, "landing.html"))
 })
 
 // Get user info
