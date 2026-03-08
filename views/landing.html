@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<title>ASTERYX AI — Offline Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+[data-theme="dark"]{
+--blue:#2A7FFF;--indigo:#5B5FFF;
+--bg:#030712;--surface:rgba(10,14,28,0.7);
+--nav-bg:rgba(3,7,18,0.85);
+--border:rgba(255,255,255,0.07);
+--text:#E8EDF8;--muted:#6B7A9A;
+--stat-grad:linear-gradient(135deg,white,#2A7FFF);
+--hero-grad:linear-gradient(160deg,#fff 30%,rgba(42,127,255,0.8) 70%,rgba(91,95,255,0.6) 100%);
+--shadow:rgba(0,0,0,0.5);
+--toggle-bg:rgba(255,255,255,0.06);--toggle-border:rgba(255,255,255,0.1);
+}
+[data-theme="light"]{
+--blue:#1d6ff0;--indigo:#4f4fff;
+--bg:#eef2fc;--surface:rgba(255,255,255,0.8);
+--nav-bg:rgba(238,242,252,0.92);
+--border:rgba(30,80,200,0.12);
+--text:#0f172a;--muted:#5a6a8a;
+--stat-grad:linear-gradient(135deg,#0f172a,#1d6ff0);
+--hero-grad:linear-gradient(160deg,#0f172a 30%,#1d6ff0 70%,#4f4fff 100%);
+--shadow:rgba(30,80,200,0.1);
+--toggle-bg:rgba(30,80,200,0.08);--toggle-border:rgba(30,80,200,0.2);
+}
+
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;transition:background 0.3s,color 0.3s}
+
+canvas{position:fixed;top:0;left:0;z-index:0;transition:opacity 0.3s}
+[data-theme="dark"] canvas{opacity:0.5}
+[data-theme="light"] canvas{opacity:0.2}
+
+.cursor-glow{position:fixed;width:600px;height:600px;background:radial-gradient(circle,rgba(42,127,255,0.1),transparent 65%);pointer-events:none;z-index:1;transform:translate(-50%,-50%)}
+
+nav{
+position:fixed;top:0;left:0;right:0;z-index:100;padding:0 60px;height:72px;
+display:flex;align-items:center;justify-content:space-between;
+background:var(--nav-bg);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);
+transition:background 0.3s,border-color 0.3s;
+}
+.nav-logo{display:flex;align-items:center;gap:12px;font-family:'Syne',sans-serif;font-size:20px;font-weight:700;letter-spacing:0.5px;color:var(--text)}
+.nav-logo img{width:36px;height:36px;border-radius:50%;box-shadow:0 0 16px rgba(42,127,255,0.4)}
+.nav-logo .dot{color:var(--blue)}
+.nav-links{display:flex;align-items:center;gap:8px}
+
+/* THEME TOGGLE */
+.theme-toggle{
+width:40px;height:40px;border-radius:10px;cursor:pointer;
+border:1px solid var(--toggle-border);background:var(--toggle-bg);
+display:flex;align-items:center;justify-content:center;font-size:17px;
+transition:all 0.25s;
+}
+.theme-toggle:hover{transform:scale(1.1);box-shadow:0 0 14px rgba(42,127,255,0.25)}
+[data-theme="dark"] .sun{display:none}[data-theme="dark"] .moon{display:block}
+[data-theme="light"] .moon{display:none}[data-theme="light"] .sun{display:block}
+
+.btn-ghost{padding:9px 22px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s}
+.btn-ghost:hover{border-color:rgba(42,127,255,0.4);background:rgba(42,127,255,0.06);color:var(--blue)}
+.btn-primary{padding:9px 22px;border-radius:8px;border:none;background:var(--blue);color:white;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s;box-shadow:0 0 20px rgba(42,127,255,0.3)}
+.btn-primary:hover{background:#1a6ef0;transform:translateY(-1px);box-shadow:0 0 30px rgba(42,127,255,0.5)}
+
+.hero{position:relative;z-index:3;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:120px 40px 80px;text-align:center}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:100px;border:1px solid rgba(42,127,255,0.3);background:rgba(42,127,255,0.08);font-size:12px;font-weight:500;color:var(--blue);letter-spacing:1px;text-transform:uppercase;margin-bottom:32px;animation:fadeUp 0.6s ease both}
+.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.hero-logo{width:100px;height:100px;border-radius:50%;border:1px solid rgba(42,127,255,0.3);box-shadow:0 0 0 8px rgba(42,127,255,0.05),0 0 60px rgba(42,127,255,0.25);margin-bottom:36px;animation:fadeUp 0.6s 0.1s ease both,float 5s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(56px,8vw,100px);font-weight:800;line-height:0.95;letter-spacing:-3px;background:var(--hero-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:24px;animation:fadeUp 0.6s 0.2s ease both}
+.hero-sub{font-size:18px;color:var(--muted);font-weight:400;max-width:480px;line-height:1.65;margin-bottom:44px;animation:fadeUp 0.6s 0.3s ease both;transition:color 0.3s}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;animation:fadeUp 0.6s 0.4s ease both}
+.btn-lg{padding:14px 32px;border-radius:10px;font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.25s}
+.btn-lg.primary{background:var(--blue);color:white;border:none;box-shadow:0 0 30px rgba(42,127,255,0.35)}
+.btn-lg.primary:hover{transform:translateY(-2px);box-shadow:0 0 45px rgba(42,127,255,0.5)}
+.btn-lg.outline{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-lg.outline:hover{border-color:rgba(42,127,255,0.4);background:rgba(42,127,255,0.05)}
+.hero-scroll{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--muted);font-size:12px;letter-spacing:1px;text-transform:uppercase;animation:fadeUp 0.6s 0.6s ease both}
+.scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,var(--blue),transparent);animation:scrollFade 1.5s infinite}
+@keyframes scrollFade{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(8px)}}
+
+.stats{position:relative;z-index:3;display:flex;flex-wrap:wrap;margin:0 60px 80px;border:1px solid var(--border);border-radius:16px;background:var(--surface);backdrop-filter:blur(20px);overflow:hidden;box-shadow:0 8px 32px var(--shadow);transition:all 0.3s}
+.stat{flex:1;min-width:160px;padding:32px 40px;text-align:center;border-right:1px solid var(--border);transition:border-color 0.3s}
+.stat:last-child{border-right:none}
+.stat-val{font-family:'Syne',sans-serif;font-size:36px;font-weight:700;background:var(--stat-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-label{font-size:13px;color:var(--muted);margin-top:4px;transition:color 0.3s}
+
+.section{position:relative;z-index:3;padding:100px 60px}
+.section-label{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--blue);margin-bottom:14px}
+.section-title{font-family:'Syne',sans-serif;font-size:clamp(32px,4vw,52px);font-weight:700;line-height:1.1;letter-spacing:-1.5px;margin-bottom:60px;transition:color 0.3s}
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2px;border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:border-color 0.3s}
+.feature-card{padding:40px;background:var(--surface);transition:background 0.3s;position:relative;overflow:hidden}
+.feature-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--blue),transparent);opacity:0;transition:opacity 0.3s}
+.feature-card:hover{background:rgba(42,127,255,0.05)}
+.feature-card:hover::before{opacity:1}
+.feature-icon{width:44px;height:44px;border-radius:10px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:20px;background:rgba(42,127,255,0.08);transition:border-color 0.3s}
+.feature-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:10px;transition:color 0.3s}
+.feature-desc{font-size:14px;color:var(--muted);line-height:1.65;transition:color 0.3s}
+
+.founder-section{position:relative;z-index:3;padding:100px 60px;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;max-width:1100px;margin:0 auto}
+@media(max-width:768px){.founder-section{grid-template-columns:1fr;gap:40px;text-align:center}.founder-img-wrap{margin:0 auto}}
+.founder-img-wrap{position:relative;width:fit-content}
+.founder-img-wrap::before{content:'';position:absolute;inset:-2px;border-radius:20px;background:linear-gradient(135deg,var(--blue),var(--indigo),transparent);z-index:-1}
+.founder-img-wrap img{width:280px;height:320px;object-fit:cover;object-position:top;border-radius:18px;display:block;filter:grayscale(20%)}
+.founder-tag{position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);background:var(--blue);color:white;padding:8px 20px;border-radius:100px;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;white-space:nowrap}
+.founder-name{font-family:'Syne',sans-serif;font-size:42px;font-weight:800;letter-spacing:-1px;line-height:1;margin:8px 0 20px;transition:color 0.3s}
+.founder-role{font-size:14px;color:var(--blue);font-weight:500;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:20px}
+.founder-bio{font-size:15px;color:var(--muted);line-height:1.75;max-width:420px;transition:color 0.3s}
+
+footer{position:relative;z-index:3;border-top:1px solid var(--border);padding:40px 60px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px;transition:border-color 0.3s}
+.footer-logo{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px;transition:color 0.3s}
+footer p{font-size:13px;color:var(--muted);transition:color 0.3s}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.reveal{opacity:0;transform:translateY(30px);transition:opacity 0.7s ease,transform 0.7s ease}
+.reveal.visible{opacity:1;transform:none}
+@media(max-width:900px){nav{padding:0 24px}.section{padding:60px 24px}.stats{margin:0 24px 60px}.stat{padding:24px}footer{padding:32px 24px}}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<div class="cursor-glow" id="cursor-glow"></div>
+
+<nav>
+  <div class="nav-logo"><img src="logo.png" alt="ASTERYX">ASTERYX<span class="dot">.</span></div>
+  <div class="nav-links">
+    <button class="theme-toggle" id="themeToggle" title="Toggle dark/light mode">
+      <span class="moon">🌙</span><span class="sun">☀️</span>
+    </button>
+    <button class="btn-ghost" onclick="location.href='/login'">Login</button>
+    <button class="btn-primary" onclick="location.href='/signup'">Get Started</button>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-badge"><span class="hero-badge-dot"></span>Offline AI Intelligence</div>
+  <img src="logo.png" alt="ASTERYX" class="hero-logo">
+  <h1>ASTERYX</h1>
+  <p class="hero-sub">A powerful artificial intelligence assistant that runs entirely on your device — no cloud, no compromise.</p>
+  <div class="hero-actions">
+    <button class="btn-lg primary" onclick="location.href='/signup'">Start for free →</button>
+    <button class="btn-lg outline" onclick="location.href='/login'">Sign in</button>
+  </div>
+  <div class="hero-scroll"><div class="scroll-line"></div>Explore</div>
+</section>
+
+<div class="stats reveal">
+  <div class="stat"><div class="stat-val">100%</div><div class="stat-label">Offline capable</div></div>
+  <div class="stat"><div class="stat-val">0ms</div><div class="stat-label">Cloud latency</div></div>
+  <div class="stat"><div class="stat-val">∞</div><div class="stat-label">Privacy preserved</div></div>
+  <div class="stat"><div class="stat-val">LLM</div><div class="stat-label">Llama 3 powered</div></div>
+</div>
+
+<section class="section">
+  <div class="section-label reveal">Capabilities</div>
+  <div class="section-title reveal">What ASTERYX<br>can do for you</div>
+  <div class="features-grid">
+    <div class="feature-card reveal"><div class="feature-icon">🔌</div><div class="feature-title">Fully Offline</div><div class="feature-desc">Runs locally on your hardware without any internet connection. Your conversations never leave your machine.</div></div>
+    <div class="feature-card reveal"><div class="feature-icon">🤖</div><div class="feature-title">Smart Assistant</div><div class="feature-desc">Assists with coding, robotics, research, and complex problem solving using state-of-the-art language models.</div></div>
+    <div class="feature-card reveal"><div class="feature-icon">🔒</div><div class="feature-title">Complete Privacy</div><div class="feature-desc">No data collection, no telemetry, no third-party access. Your data is yours — always, unconditionally.</div></div>
+    <div class="feature-card reveal"><div class="feature-icon">⚡</div><div class="feature-title">Low Latency</div><div class="feature-desc">Responses generated locally mean near-instant inference without round-trips to remote servers.</div></div>
+    <div class="feature-card reveal"><div class="feature-icon">💬</div><div class="feature-title">Multi-Session Chats</div><div class="feature-desc">Organize conversations into separate threads and pick up exactly where you left off.</div></div>
+    <div class="feature-card reveal"><div class="feature-icon">🛠️</div><div class="feature-title">Open &amp; Extensible</div><div class="feature-desc">Built on Node.js and Ollama — swap models, extend routes, or integrate freely.</div></div>
+  </div>
+</section>
+
+<div class="founder-section">
+  <div class="founder-img-wrap reveal"><img src="founder.jpg" alt="Ujjwal Manna"><div class="founder-tag">Founder</div></div>
+  <div class="founder-text reveal">
+    <div class="section-label">The person behind it</div>
+    <div class="founder-name">Ujjwal<br>Manna</div>
+    <div class="founder-role">AI &amp; Robotics Developer</div>
+    <p class="founder-bio">Developer focused on offline AI systems, robotics, and making powerful intelligence accessible without cloud dependency. ASTERYX is built on the belief that AI should be private, fast, and yours.</p>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo"><img src="logo.png" width="28" height="28" style="border-radius:50%"> ASTERYX</div>
+  <p>© 2026 ASTERYX AI — All rights reserved</p>
+</footer>
+
+<script>
+// ===== THEME =====
+const html = document.documentElement
+const toggleBtn = document.getElementById('themeToggle')
+
+function applyTheme(t) {
+  html.setAttribute('data-theme', t)
+  localStorage.setItem('asteryx-theme', t)
+}
+
+applyTheme(localStorage.getItem('asteryx-theme') || 'dark')
+
+toggleBtn.addEventListener('click', () => {
+  applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark')
+})
+
+// ===== CANVAS =====
+const canvas = document.getElementById('bg')
+const ctx = canvas.getContext('2d')
+let W, H, pts = []
+function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeight }
+resize(); addEventListener('resize', resize)
+for (let i = 0; i < 80; i++) pts.push({ x: Math.random()*W, y: Math.random()*H, vx: (Math.random()-.5)*.4, vy: (Math.random()-.5)*.4, r: Math.random()*1.5+.5 })
+function draw() {
+  ctx.clearRect(0, 0, W, H)
+  const dark = html.getAttribute('data-theme') === 'dark'
+  pts.forEach(p => {
+    p.x += p.vx; p.y += p.vy
+    if (p.x < 0 || p.x > W) p.vx *= -1
+    if (p.y < 0 || p.y > H) p.vy *= -1
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2)
+    ctx.fillStyle = dark ? 'rgba(42,127,255,0.6)' : 'rgba(42,127,255,0.35)'; ctx.fill()
+    pts.forEach(q => {
+      const d = Math.hypot(p.x-q.x, p.y-q.y)
+      if (d < 140) { ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y); ctx.strokeStyle = `rgba(42,127,255,${(dark?.08:.05)*(1-d/140)})`; ctx.lineWidth=.5; ctx.stroke() }
+    })
+  })
+  requestAnimationFrame(draw)
+}
+draw()
+
+// ===== GLOW =====
+const glow = document.getElementById('cursor-glow')
+addEventListener('mousemove', e => { glow.style.left = e.clientX+'px'; glow.style.top = e.clientY+'px' })
+
+// ===== REVEAL =====
+const obs = new IntersectionObserver(entries => {
+  entries.forEach((e,i) => { if (e.isIntersecting) { setTimeout(()=>e.target.classList.add('visible'),i*80); obs.unobserve(e.target) } })
+}, { threshold: 0.1 })
+document.querySelectorAll('.reveal').forEach(r => obs.observe(r))
+</script>
+</body>
+</html>

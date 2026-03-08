@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "name": "UJJWAL MANNA",
+    "email": "prmanna78@gmail.com",
+    "password": "123456"
+  },
+  {
+    "name": "ARJUN RATHORE",
+    "email": "arjun2007@gmail.com",
+    "password": "12345678"
+  }
+]
